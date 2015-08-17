@@ -14,6 +14,10 @@ def create_app():
 
 app = create_app()
 
+@app.route("/")
+def hello():
+    return "Hello World!\n"
+
 @app.route("/<modelname>/predict", methods=['POST', 'OPTIONS'])
 def predict(modelname):
 	try:

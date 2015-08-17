@@ -1,5 +1,9 @@
 import glob
 
+import nltk
+from nltk import word_tokenize
+from sklearn.feature_extraction.text import CountVectorizer
+
 from sklearn.cross_validation import KFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
@@ -10,6 +14,8 @@ from datetime import timedelta
 from dateutil import relativedelta
 from dateutil import parser
 from datetime import datetime
+
+import numpy as np
 
 class ActorClassification:
   manual_generators = ['Twitter Web Client', 
@@ -36,13 +42,28 @@ class ActorClassification:
   def load(self):
     self.last_loaded = datetime.now()
 
-    models_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_*.pkl'))
-    models_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_*.pkl'))
+    forest_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_*.pkl'))
+    forest_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_*.pkl'))
 
-    forest_path = models_path[-1]
+    forest_path = forest_path[-1]
     self.model = joblib.load(forest_path)
 
+    counter_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/bio_count_vectorizer_*.pkl'))
+    counter_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/bio_count_vectorizer_*.pkl'))    
+    counter_path = counter_path[-1]
+    vocabulary = joblib.load(counter_path) 
+    self.counter = CountVectorizer(tokenizer=self.tokenize, ngram_range=(1,3), vocabulary = vocabulary)
+
+  def tokenize(self, text):
+    tokenizer = nltk.RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(text)
+    tokens = [('NUM' if word.isdigit() else word) for word in tokens]
+    return tokens
+
   def predict(self, raw_data):
+    actor_summary = raw_data.get('actor_summary', '')
+    transformed = self.counter.transform([actor_summary])
+    transformed_features = transformed.toarray()[0]
 
     actor_verified = int(raw_data['actor_verified'])
 
@@ -58,8 +79,8 @@ class ActorClassification:
     favourites_friends_ratio = actor_favorites_count/float(actor_friends_count)
     favourites_followers_ratio = actor_favorites_count/float(actor_followers_count)
     favourites_status_ratio = actor_favorites_count/float(actor_statuses_count)
-    
-    result = self.model.predict_proba([ 
+
+    calculated_features = [ 
         actor_favorites_count, 
         actor_followers_count, 
         actor_friends_count, 
@@ -72,7 +93,10 @@ class ActorClassification:
         favourites_status_ratio,
         followers_friends_ratio, 
         manually_tweeting
-    ])[0]
+    ]
+    all_features = np.concatenate([calculated_features, transformed_features])
+    
+    result = self.model.predict_proba(all_features)[0]
 
     return {
       'business': result[0],
