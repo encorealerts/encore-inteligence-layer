@@ -30,47 +30,11 @@ class PredictivePostRegression:
     self.model = joblib.load(lr_model_path)
 
   def predict(self, raw_data):
-    actor_summary = raw_data.get('actor_summary', '')
-    transformed = self.counter.transform([actor_summary])
-    transformed_features = transformed.toarray()[0]
-
-    actor_verified = int(raw_data['actor_verified'])
-
-    actor_followers_count = int(raw_data['actor_followers_count'])
-    actor_friends_count = int(raw_data['actor_friends_count'])
-    actor_favorites_count = int(raw_data['actor_favorites_count'])
-    actor_statuses_count = int(raw_data['actor_statuses_count'])
-    actor_listed_count = int(raw_data['actor_listed_count'])
-
-    registration_from_now = self.actor_registration_from_now(raw_data['actor_created_at'])
-    followers_friends_ratio = actor_followers_count/float(actor_friends_count)
-    favourites_friends_ratio = actor_favorites_count/float(actor_friends_count)
-    favourites_followers_ratio = actor_favorites_count/float(actor_followers_count)
-    favourites_status_ratio = actor_favorites_count/float(actor_statuses_count)
-
-    calculated_features = [ 
-        actor_favorites_count, 
-        actor_followers_count, 
-        actor_friends_count, 
-        actor_listed_count, 
-        registration_from_now, 
-        actor_statuses_count, 
-        actor_verified, 
-        favourites_followers_ratio, 
-        favourites_friends_ratio,
-        favourites_status_ratio,
-        followers_friends_ratio
-    ]
-    all_features = np.concatenate([calculated_features, transformed_features])
+    native_id            = raw_data['native_id']
+    time_series_retweets = raw_data['time_series_retweets']
     
-    result = self.model.predict_proba(all_features)[0]
+    result = self.model.predict_proba(time_series_retweets)[0]
 
     return {
-      'business': result[0],
-      'person': result[1]
+      'engagement': result[0]
     }
-
-  def actor_registration_from_now(self, registration):
-      r = parser.parse(registration)
-      d = relativedelta.relativedelta(datetime.now(), r)
-      return d.years * 12 + d.months
