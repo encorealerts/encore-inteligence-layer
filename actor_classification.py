@@ -62,16 +62,17 @@ class ActorClassification:
 
   def predict(self, raw_data):
     actor_summary = raw_data.get('actor_summary', '')
+    actor_summary = '' if actor_summary is None else actor_summary
     transformed = self.counter.transform([actor_summary])
     transformed_features = transformed.toarray()[0]
 
     actor_verified = int(raw_data['actor_verified'])
 
-    actor_followers_count = int(raw_data['actor_followers_count'])
-    actor_friends_count = int(raw_data['actor_friends_count'])
-    actor_favorites_count = int(raw_data['actor_favorites_count'])
-    actor_statuses_count = int(raw_data['actor_statuses_count'])
-    actor_listed_count = int(raw_data['actor_listed_count'])
+    actor_followers_count = int(1 if raw_data['actor_followers_count'] is None else raw_data['actor_followers_count'])
+    actor_friends_count = int(1 if raw_data['actor_friends_count'] is None else raw_data['actor_friends_count'])
+    actor_favorites_count = int(1 if raw_data['actor_favorites_count'] is None else raw_data['actor_favorites_count'])
+    actor_statuses_count = int(1 if raw_data['actor_statuses_count'] is None else raw_data['actor_statuses_count'])
+    actor_listed_count = int(1 if raw_data['actor_listed_count'] is None else raw_data['actor_listed_count'])
 
     manually_tweeting = int(raw_data['tweet_generator'] in self.manual_generators)
     registration_from_now = self.actor_registration_from_now(raw_data['actor_created_at'])
