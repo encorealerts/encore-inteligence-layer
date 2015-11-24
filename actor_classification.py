@@ -123,6 +123,7 @@ class ActorClassification:
 
   def predict(self, raw_data):
     df = pd.DataFrame([pd.Series(raw_data)])
+    gc.collect()
     df = self.perform_feature_engineering(df)
     
     result = self.model.predict_proba(df)[0]
