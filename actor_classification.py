@@ -31,8 +31,8 @@ class ActorClassification:
   def load(self):
     self.last_loaded = datetime.now()
 
-    forest_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_*.pkl'))
-    forest_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_*.pkl'))
+    forest_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_20*.pkl'))
+    forest_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_20*.pkl'))
 
     forest_path = forest_path[-1]
     self.model = joblib.load(forest_path)
