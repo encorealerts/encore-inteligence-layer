@@ -1,4 +1,5 @@
 import glob
+import gc
 
 import nltk
 from nltk import word_tokenize
@@ -42,8 +43,8 @@ class ActorClassification:
 
   def perform_feature_engineering(self, data):
     # Remove non-relevant columns
-    data = data.drop(["segment"], axis=1)
-    data = data.drop(["link"], axis=1)
+    del data["segment"]
+    del data["link"]
 
     # Transform boolean 'verified' to 0/1
     data.ix[data.verified.isnull(), 'verified'] = False
@@ -57,7 +58,7 @@ class ActorClassification:
         if lang != None:
           data.ix[data.lang == lang, "lang_"+lang] = 1
           data.ix[data.lang != lang, "lang_"+lang] = 0
-      data = data.drop(["lang"], axis=1)
+      del data["lang"]
 
     # Treat special characters
     text_fields = ["name", "screen_name","summary"]
@@ -88,8 +89,10 @@ class ActorClassification:
         field_matrix = field_countvect.fit_transform(data[field])
         features_names = map(lambda f: "_".join([field,f]), field_countvect.get_feature_names())
         field_df = pd.DataFrame(field_matrix.A, columns=features_names)
-
-        data = pd.concat([data, field_df], axis=1, join='inner').drop([field], axis=1)
+        gc.collect()
+        data = pd.concat([data, field_df], axis=1, join='inner')
+        del data[field]
+        gc.collect()
 
     # CountVectorizer for 'summary'
     def num_word_tokenizer(text):
@@ -107,10 +110,14 @@ class ActorClassification:
       summary_matrix = summary_countvect.fit_transform(data.summary)
       features_names = map(lambda f: "_".join(["summary",f]), summary_countvect.get_feature_names())
       summary_df = pd.DataFrame(summary_matrix.A, columns=features_names)
-      data = pd.concat([data, summary_df], axis=1, join='inner').drop(["summary"], axis=1)
+      gc.collect()
+      data = pd.concat([data, summary_df], axis=1, join='inner').
+      del data["summary"]
+      gc.collect()
 
     # Treat remaining null values
-    data = data.fillna(0)
+    data.fillna(0, inplace=True)
+    gc.collect()
 
     return data   
 
