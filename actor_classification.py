@@ -16,6 +16,7 @@ from dateutil import relativedelta
 from datetime import datetime
 
 import numpy as np
+import pandas as pd
 
 class ActorClassification:
 
@@ -42,10 +43,6 @@ class ActorClassification:
     self.model_features = joblib.load(model_features_path)
 
   def perform_feature_engineering(self, data):
-    # Remove non-relevant columns
-    del data["segment"]
-    del data["link"]
-
     # Transform boolean 'verified' to 0/1
     data.ix[data.verified.isnull(), 'verified'] = False
     data.ix[data.verified == True,  'verified'] = 1
@@ -111,7 +108,7 @@ class ActorClassification:
       features_names = map(lambda f: "_".join(["summary",f]), summary_countvect.get_feature_names())
       summary_df = pd.DataFrame(summary_matrix.A, columns=features_names)
       gc.collect()
-      data = pd.concat([data, summary_df], axis=1, join='inner').
+      data = pd.concat([data, summary_df], axis=1, join='inner')
       del data["summary"]
       gc.collect()
 
@@ -123,7 +120,6 @@ class ActorClassification:
 
   def predict(self, raw_data):
     df = pd.DataFrame([pd.Series(raw_data)])
-    gc.collect()
     df = self.perform_feature_engineering(df)
     
     result = self.model.predict_proba(df)[0]
