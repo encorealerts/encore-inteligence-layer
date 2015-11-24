@@ -82,7 +82,7 @@ class ActorClassification:
         field_countvect = CountVectorizer(tokenizer=num_char_tokenizer,
                                           ngram_range=(3, 5), 
                                           analyzer="char",
-                                          min_df = 8,
+                                          min_df = 50, #8
                                           vocabulary = filter(lambda f: f.startswith(field+"_"), 
                                                               self.model_features))
 
@@ -103,7 +103,7 @@ class ActorClassification:
       summary_countvect = CountVectorizer(tokenizer=num_word_tokenizer,
                                           ngram_range=(2, 4), 
                                           analyzer="word",
-                                          min_df = 5,
+                                          min_df = 50, #5
                                           vocabulary = filter(lambda f: f.startswith("summary_"), 
                                                               self.model_features))
 
