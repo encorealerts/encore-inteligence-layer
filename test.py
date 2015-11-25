@@ -1,3 +1,5 @@
+import json
+
 import glob
 import gc
 
@@ -35,6 +37,7 @@ class ActorClassification:
     forest_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_20*.pkl'))
 
     forest_path = forest_path[-1]
+
     self.model = joblib.load(forest_path)
 
     model_features_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_features_*.pkl'))
@@ -119,6 +122,31 @@ class ActorClassification:
   def predict(self, raw_data):
     df = pd.DataFrame([pd.Series(raw_data)])
     df = self.perform_feature_engineering(df)
+
+    ########################################
+    self_model_features = map(lambda d: d.decode(), self.model_features)
+    df_columns = map(lambda d: d.decode(), df.columns)
+
+    print len(list(set(self_model_features)))
+    print len(list(set(df_columns)))
+    print len(list(set(self_model_features) - set(df_columns)))
+
+    print self_model_features[2:11]
+    print df_columns[2:11]
+    
+    print self_model_features[-10:]
+    print df_columns[-10:]
+
+    print self_model_features[11:20]
+    print df_columns[11:20]
+    
+    print self_model_features[-20:-10]
+    print df_columns[-20:-10]
+
+    # print list(set(filter(lambda d: not d.startswith("screen_name_") and not d.startswith("name_") and not d.startswith("summary_"), self.model_features)) -
+    #            set(filter(lambda d: not d.startswith("screen_name_") and not d.startswith("name_") and not d.startswith("summary_"), df.columns)))
+
+    ########################################
     
     result = self.model.predict_proba(df)[0]
 
@@ -126,3 +154,8 @@ class ActorClassification:
       'business': result[0],
       'person': result[1]
     }
+
+
+
+classifier = ActorClassification()
+classifier.predict(json.loads("{\"lang\":\"en\",\"summary\":\"Artist, Writer, Designer. Tweets on tech, culture, art, animals, \\u0026 the socioeconomy.\",\"verified\":0,\"followers_count\":175,\"friends_count\":397,\"favourites_count\":228,\"statuses_count\":410,\"listed_count\":12,\"name\":\"Daniel Adornes\",\"screen_name\":\"daniel_adornes\"}"))
