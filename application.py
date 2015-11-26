@@ -1,5 +1,4 @@
 from actor_classification import ActorClassification
-from predictive_post_regression import PredictivePostRegression
 
 from flask import Flask, jsonify, request
 
