@@ -10,7 +10,6 @@ def create_app():
   app = Flask(__name__)
   
   resources['actor_classification'] = ActorClassification()
-  resources['predictive_post_regression'] = PredictivePostRegression()
 
   return app
 
