@@ -1,5 +1,4 @@
 from actor_classification import ActorClassification
-from predictive_post_regression import PredictivePostRegression
 
 from flask import Flask, jsonify, request
 
@@ -10,7 +9,6 @@ def create_app():
   app = Flask(__name__)
   
   resources['actor_classification'] = ActorClassification()
-  resources['predictive_post_regression'] = PredictivePostRegression()
 
   return app
 
