@@ -69,8 +69,7 @@ class ActorClassification:
 
     for field in ["screen_name","name"]:
       if field in data:
-        vocabulary = filter(lambda f: f.startswith(field+"_"), self.model_features)
-        vocabulary = map(lambda f: f.replace(field+"_", ""), vocabulary)
+        vocabulary = [f.replace(field+"_", "") for f in self.model_features if f.startswith(field+"_")]
         field_tfidf = TfidfVectorizer(tokenizer=num_char_tokenizer,
                                       ngram_range=(3, 5), 
                                       analyzer="char",
@@ -86,11 +85,12 @@ class ActorClassification:
 
     # TfidfVectorizer for 'summary'
     if "summary" in data:
-      vocabulary = filter(lambda f: f.startswith("summary_"), self.model_features)
-      vocabulary = map(lambda f: f.replace("summary_", ""), vocabulary)
+      vocabulary = [f.replace("summary_", "") for f in self.model_features if f.startswith("summary_")]
       summary_tfidf = TfidfVectorizer(token_pattern=r'\w+',
                                       ngram_range=(1, 4), 
                                       analyzer="word",
+                                      binary=True, #False 
+                                      stop_words='english',
                                       vocabulary = vocabulary)
 
       summary_matrix = summary_tfidf.fit_transform(data.summary)
