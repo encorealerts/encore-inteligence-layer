@@ -1,13 +1,8 @@
 import glob
 import gc
+import chardet
 
-import nltk
-from nltk import word_tokenize
-from sklearn.feature_extraction.text import CountVectorizer
-
-from sklearn.cross_validation import KFold
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.externals import joblib
 
 from datetime import timedelta
@@ -15,6 +10,7 @@ from datetime import timedelta
 from dateutil import relativedelta
 from datetime import datetime
 
+import pandas as pd
 import numpy as np
 import pandas as pd
 
@@ -31,8 +27,8 @@ class ActorClassification:
   def load(self):
     self.last_loaded = datetime.now()
 
-    forest_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_20*.pkl'))
-    forest_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_20*.pkl'))
+    forest_path = sorted(glob.glob('../encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_2*.pkl'))
+    forest_path += sorted(glob.glob('/mnt/encore-luigi/data/actor_classification/deploy/actor_classification_random_forest_2*.pkl'))
 
     forest_path = forest_path[-1]
     self.model = joblib.load(forest_path)
@@ -58,15 +54,16 @@ class ActorClassification:
 
     def treat_special_char(c):
       try:
-        return '0' if c.isdigit() else c.decode().encode("utf-8")
-      except UnicodeDecodeError:
+        encoding = chardet.detect(str(c))['encoding'] or "KOI8-R"
+        return '0' if c.isdigit() else c.decode(encoding)
+      except:
         return '9'
 
     for field in text_fields:
       data.ix[data[field].isnull(), field] = "null"
       data[field] = map(lambda n: ''.join(map(lambda c: treat_special_char(c), list(n))), data[field].values)
 
-    # CountVectorizer for 'screen_name' and 'name'
+    # TfidfVectorizer for 'screen_name' and 'name'
     def num_char_tokenizer(text):
       return list(text)
 
@@ -74,36 +71,32 @@ class ActorClassification:
       if field in data:
         vocabulary = filter(lambda f: f.startswith(field+"_"), self.model_features)
         vocabulary = map(lambda f: f.replace(field+"_", ""), vocabulary)
-        field_countvect = CountVectorizer(tokenizer=num_char_tokenizer,
-                                          ngram_range=(3, 5), 
-                                          analyzer="char",
-                                          min_df = 50, #8
-                                          vocabulary = vocabulary)
+        field_tfidf = TfidfVectorizer(tokenizer=num_char_tokenizer,
+                                      ngram_range=(3, 5), 
+                                      analyzer="char",
+                                      min_df = 1,
+                                      vocabulary = vocabulary)
 
-        field_matrix = field_countvect.fit_transform(data[field])
-        features_names = map(lambda f: "_".join([field,f]), field_countvect.get_feature_names())
+        field_matrix = field_tfidf.fit_transform(data[field])
+        features_names = map(lambda f: "_".join([field,f]), field_tfidf.get_feature_names())
         field_df = pd.DataFrame(field_matrix.A, columns=features_names)
         gc.collect()
         data = pd.concat([data, field_df], axis=1, join='inner')
         del data[field]
         gc.collect()
 
-    # CountVectorizer for 'summary'
-    def num_word_tokenizer(text):
-      tokenizer = nltk.RegexpTokenizer(r'\w+')
-      return tokenizer.tokenize(text)
-
+    # TfidfVectorizer for 'summary'
     if "summary" in data:
       vocabulary = filter(lambda f: f.startswith("summary_"), self.model_features)
       vocabulary = map(lambda f: f.replace("summary_", ""), vocabulary)
-      summary_countvect = CountVectorizer(tokenizer=num_word_tokenizer,
-                                          ngram_range=(2, 4), 
-                                          analyzer="word",
-                                          min_df = 50, #5
-                                          vocabulary = vocabulary)
+      summary_tfidf = TfidfVectorizer(token_pattern=r'\w+',
+                                      ngram_range=(1, 4), 
+                                      analyzer="word",
+                                      min_df = 1,
+                                      vocabulary = vocabulary)
 
-      summary_matrix = summary_countvect.fit_transform(data.summary)
-      features_names = map(lambda f: "_".join(["summary",f]), summary_countvect.get_feature_names())
+      summary_matrix = summary_tfidf.fit_transform(data.summary)
+      features_names = map(lambda f: "_".join(["summary",f]), summary_tfidf.get_feature_names())
       summary_df = pd.DataFrame(summary_matrix.A, columns=features_names)
       gc.collect()
       data = pd.concat([data, summary_df], axis=1, join='inner')
