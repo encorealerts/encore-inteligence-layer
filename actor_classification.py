@@ -74,7 +74,6 @@ class ActorClassification:
         field_tfidf = TfidfVectorizer(tokenizer=num_char_tokenizer,
                                       ngram_range=(3, 5), 
                                       analyzer="char",
-                                      min_df = 1,
                                       vocabulary = vocabulary)
 
         field_matrix = field_tfidf.fit_transform(data[field])
@@ -92,7 +91,6 @@ class ActorClassification:
       summary_tfidf = TfidfVectorizer(token_pattern=r'\w+',
                                       ngram_range=(1, 4), 
                                       analyzer="word",
-                                      min_df = 1,
                                       vocabulary = vocabulary)
 
       summary_matrix = summary_tfidf.fit_transform(data.summary)
