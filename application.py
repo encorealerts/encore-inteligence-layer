@@ -1,4 +1,4 @@
-from actor_classification import ActorClassification
+from actor_classification import *
 
 from flask import Flask, jsonify, request
 
