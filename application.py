@@ -1,7 +1,6 @@
 import sys
-import cherrypy as cp
-from cherrypy.wsgiserver import CherryPyWSGIServer
-from cherrypy.process.servers import ServerAdapter
+
+from cherrypy import wsgiserver
 
 from actor_classification import *
 
@@ -21,8 +20,6 @@ def create_app():
 
   return app
 
-app = create_app()
-
 @app.route("/")
 def hello():
     return "Hello World!\n"
@@ -39,36 +36,14 @@ def predict(modelname):
 # Hosting 
 # =========================
 
-def run_decoupled(app, port, host='0.0.0.0', **config):
-  server = CherryPyWSGIServer((host, port), app, **config)
-  try:
-      server.start()
-  except KeyboardInterrupt:
-      server.stop()
-
-def run_in_cp_tree(app, port, host='0.0.0.0', **config):
-  cp.tree.graft(app, '/')
-  cp.config.update(config)
-  cp.config.update({
-      'server.socket_port': port,
-      'server.socket_host': host
-  })
-  cp.engine.signals.subscribe() # optional
-  cp.engine.start()
-  cp.engine.block()
-
-def run_with_adapter(app, port, host='0.0.0.0', config=None, **kwargs):
-  cp.server.unsubscribe()
-  bind_addr = (host, port)
-  cp.server = ServerAdapter(cp.engine,
-                            CherryPyWSGIServer(bind_addr, app, **kwargs),
-                            bind_addr).subscribe()
-  if config:
-    cp.config.update(config)
-  cp.engine.signals.subscribe() # optional
-  cp.engine.start()
-  cp.engine.block()
+app = create_app()
 
 if __name__ == "__main__":
-  port = (5001 if len(sys.argv) == 1 else int(sys.argv[1]))
-  run_with_adapter(app, port=port)
+  cherry_port = (5001 if len(sys.argv) == 1 else int(sys.argv[1]))
+  cherry_server = wsgiserver.CherryPyWSGIServer(('0.0.0.0', cherry_port), cherry_dispatcher)
+  cherry_dispatcher = wsgiserver.WSGIPathInfoDispatcher({'/': app})
+
+  try:
+    server.start()
+  except KeyboardInterrupt:
+    server.stop()
