@@ -1,4 +1,5 @@
 import sys
+import time
 
 from cherrypy import wsgiserver
 
@@ -20,30 +21,52 @@ def create_app():
 
   return app
 
+app = create_app()
+
+class Timer(object):
+  def __init__(self, verbose=False):
+    self.verbose = verbose  
+
+  def __enter__(self):
+    self.start = time()
+    return self
+
+  def __exit__(self, *args):
+    self.end = time()
+    self.secs = self.end - self.start
+    self.msecs = self.secs * 1000  # millisecs
+    if self.verbose:
+      print 'elapsed time: %f ms' % self.msecs
+
 @app.route("/")
 def hello():
     return "Hello World!\n"
 
 @app.route("/<modelname>/predict", methods=['POST', 'OPTIONS'])
 def predict(modelname):
-	try:
-		json_request = request.get_json(force=True)
-		return jsonify(resources[modelname].predict(json_request))
-	except Exception as e:
-		traceback.print_exc()
+  try:
+    json_request = request.get_json(force=True)
+    json_predict = None 
+
+    with Timer() as t:
+      json_predict = jsonify(resources[modelname].predict(json_request))
+    print json_request['screen_name'], "predict:", t.secs
+
+    return json_predict
+  except Exception as e:
+    traceback.print_exc()
 
 # =========================
 # Hosting 
 # =========================
 
-app = create_app()
-
 if __name__ == "__main__":
   cherry_port = (5001 if len(sys.argv) == 1 else int(sys.argv[1]))
-  cherry_server = wsgiserver.CherryPyWSGIServer(('0.0.0.0', cherry_port), cherry_dispatcher)
   cherry_dispatcher = wsgiserver.WSGIPathInfoDispatcher({'/': app})
+  cherry_server = wsgiserver.CherryPyWSGIServer(('0.0.0.0', cherry_port), cherry_dispatcher, numthreads=100)
+  cherry_server.thread_pool = 100
 
   try:
-    server.start()
+    cherry_server.start()
   except KeyboardInterrupt:
-    server.stop()
+    cherry_server.stop()
