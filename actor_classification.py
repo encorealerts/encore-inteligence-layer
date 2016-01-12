@@ -11,7 +11,7 @@ import gc
 import matplotlib.pyplot as plt
 
 from pprint import pprint
-from time import time
+from time import time, ctime
 from datetime import datetime
 from scipy.stats import randint as sp_randint
 
@@ -53,7 +53,6 @@ class VerifiedTransformer(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     X.verified.fillna(False, inplace=True)
     X.verified = LabelEncoder().fit_transform(X.verified)
     return X
@@ -69,7 +68,6 @@ class LangOneHotEncoding(BaseEstimator, TransformerMixin):
   def transform(self, X, y=None):
     check_is_fitted(self, 'feature_names_')
     
-    X = X.copy()
     X["lang"].fillna("", inplace=True)
     for lang_feature in self.feature_names_:
         X[lang_feature] = [(1 if lang_feature == "lang_"+v else 0) for v in X["lang"].values]
@@ -88,7 +86,6 @@ class FillTextNA(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
         if c in X:
             X[c].fillna(self.replace_by, inplace=True)
@@ -168,7 +165,6 @@ class TextToLowerCase(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X[c] = [t.lower() for t in X[c].values]
@@ -184,7 +180,6 @@ class NumberOfWords(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X["number_of_words_in_"+c] = [len(t.split(' ')) for t in X[c].values]
@@ -200,7 +195,6 @@ class NumberNonAlphaNumChars(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X["number_of_non_alphanum_in_"+c] = [len(re.sub(r"[\w\d]","", t)) for t in X[c].values]
@@ -216,7 +210,6 @@ class NumberUpperCaseChars(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X["number_of_upper_case_chars_in_"+c] = [len(re.sub(r"[^A-Z]","", t)) for t in X[c].values]
@@ -232,7 +225,6 @@ class NumberCamelCaseWords(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X["number_of_camel_case_words_in_"+c] = [len(re.findall(r"^[A-Z][a-z]|\s[A-Z][a-z]", t)) 
@@ -249,7 +241,6 @@ class NumberOfMentions(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X["number_of_mentions_in_"+c] = [len(re.findall(r"\s@[a-zA-Z]",t)) 
@@ -266,7 +257,6 @@ class NumberOfPeriods(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X["number_of_periods_in_"+c] = [len(t.split(". ")) 
@@ -283,7 +273,6 @@ class AvgWordsPerPeriod(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
       if c in X:
         X["avg_words_per_period_in_"+c] = [np.mean([len(p.split(" ")) for p in t.split(". ")]) 
@@ -303,17 +292,16 @@ class MentionToFamilyRelation(BaseEstimator, TransformerMixin):
     count = 0
     tokenizer = nltk.RegexpTokenizer(r'[a-z]+')
     for tkn in tokenizer.tokenize(t):
-      if tkn in ["husband","wife","father","mother","daddy","mommy",
-                 "grandfather","grandmother","grandpa","grandma"]:
-        count += 1
+          if tkn in ["husband","wife","father","mother","daddy","mommy",
+                     "grandfather","grandmother","grandpa","grandma"]:
+                count += 1
     return count
 
   def transform(self, X, y=None):
-    X = X.copy()
     for c in self.cols:
-      if c in X:
-          X["mention_to_family_relation_in_"+c] = [self.count_mentions(t) 
-                                                   for t in X[c].values]
+        if c in X:
+            X["mention_to_family_relation_in_"+c] = [self.count_mentions(t) 
+                                                     for t in X[c].values]
     return X
 
 
@@ -324,24 +312,23 @@ class MentionToOccupation(BaseEstimator, TransformerMixin):
 
   def fit(self, X, y=None):
     occupations = pd.read_csv("https://raw.githubusercontent.com/johnlsheridan/occupations/master/occupations.csv")
-    self.occupations_ = [o.lower() for o in occupations.Occupations.values]
+    occupations = [o.lower().split(' ')[-1] for o in occupations.Occupations.values]
+    self.occupations_ = dict.fromkeys(occupations, 1)
     return self
   
   def count_mentions(self, t):
     count = 0
-    for o in self.occupations_:
-      count += len(re.findall(r"(^|\W)%s(\W|$)" % o, t))
-      if count == 3:
-          break
+    tokenizer = nltk.RegexpTokenizer(r'[a-z]+')
+    for name in tokenizer.tokenize(t):
+        count += self.occupations_.get(name, 0)
     return count
 
   def transform(self, X, y=None):
     check_is_fitted(self, 'occupations_')
-    X = X.copy()
     for c in self.cols:
-      if c in X:
-        X["mention_to_occupation_in_"+c] = [self.count_mentions(t) 
-                                             for t in X[c].values]
+        if c in X:
+            X["mention_to_occupation_in_" + c] = [self.count_mentions(t) 
+                                                 for t in X[c].values]
     return X
     
 
@@ -355,26 +342,23 @@ class PersonNames(BaseEstimator, TransformerMixin):
     male_names   = pd.read_csv("http://deron.meranda.us/data/census-dist-male-first.txt", names=["name"])
     female_names = [re.sub(r"[^a-z]","",n.lower()) for n in female_names.name.values]
     male_names   = [re.sub(r"[^a-z]","",n.lower()) for n in male_names.name.values]        
-    self.person_names_ = list(set(male_names + female_names))
+    self.person_names_ = dict.fromkeys(set(male_names + female_names), 1)
     return self
   
   def count_mentions(self, t):
     count = 0
     tokenizer = nltk.RegexpTokenizer(r'[a-z]+')
     for name in tokenizer.tokenize(t):
-      if name in self.person_names_:
-        count += 1
+        count += self.person_names_.get(name, 0)
     return count
 
   def transform(self, X, y=None):
     check_is_fitted(self, 'person_names_')
-    X = X.copy()
     for c in self.cols:
-      if c in X:
-        X["person_names_in_"+c] = [self.count_mentions(t) 
-                                   for t in X[c].values]
-    return X
-    
+        if c in X:
+            X["person_names_in_" + c] = [self.count_mentions(t) 
+                                        for t in X[c].values]
+    return X   
 
 class DropColumnsTransformer(BaseEstimator, TransformerMixin):
 
@@ -413,11 +397,10 @@ class Debugger(BaseEstimator, TransformerMixin):
     return self
 
   def transform(self, X, y=None):
-    print "-------------------------"
-    print self.name
-    print "Dataset dimensions:"
-    print X.shape
-    print "-------------------------"
+    try:
+      print X.loc[0]["screen_name"], 'step:', self.name, '-', ctime(), X.shape
+    except:
+      print 'step:', self.name, '-', ctime(), X.shape
     return X
 
 

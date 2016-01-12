@@ -1,7 +1,7 @@
 import sys
-import cherrypy as cp
-from cherrypy.wsgiserver import CherryPyWSGIServer
-from cherrypy.process.servers import ServerAdapter
+import time
+
+from cherrypy import wsgiserver
 
 from actor_classification import *
 
@@ -23,52 +23,50 @@ def create_app():
 
 app = create_app()
 
+class Timer(object):
+  def __init__(self, verbose=False):
+    self.verbose = verbose  
+
+  def __enter__(self):
+    self.start = time()
+    return self
+
+  def __exit__(self, *args):
+    self.end = time()
+    self.secs = self.end - self.start
+    self.msecs = self.secs * 1000  # millisecs
+    if self.verbose:
+      print 'elapsed time: %f ms' % self.msecs
+
 @app.route("/")
 def hello():
     return "Hello World!\n"
 
 @app.route("/<modelname>/predict", methods=['POST', 'OPTIONS'])
 def predict(modelname):
-	try:
-		json_request = request.get_json(force=True)
-		return jsonify(resources[modelname].predict(json_request))
-	except Exception as e:
-		traceback.print_exc()
+  try:
+    json_request = request.get_json(force=True)
+    json_predict = None 
+
+    with Timer() as t:
+      json_predict = jsonify(resources[modelname].predict(json_request))
+    print json_request['screen_name'], "predict:", t.secs
+
+    return json_predict
+  except Exception as e:
+    traceback.print_exc()
 
 # =========================
 # Hosting 
 # =========================
 
-def run_decoupled(app, port, host='0.0.0.0', **config):
-  server = CherryPyWSGIServer((host, port), app, **config)
-  try:
-      server.start()
-  except KeyboardInterrupt:
-      server.stop()
-
-def run_in_cp_tree(app, port, host='0.0.0.0', **config):
-  cp.tree.graft(app, '/')
-  cp.config.update(config)
-  cp.config.update({
-      'server.socket_port': port,
-      'server.socket_host': host
-  })
-  cp.engine.signals.subscribe() # optional
-  cp.engine.start()
-  cp.engine.block()
-
-def run_with_adapter(app, port, host='0.0.0.0', config=None, **kwargs):
-  cp.server.unsubscribe()
-  bind_addr = (host, port)
-  cp.server = ServerAdapter(cp.engine,
-                            CherryPyWSGIServer(bind_addr, app, **kwargs),
-                            bind_addr).subscribe()
-  if config:
-    cp.config.update(config)
-  cp.engine.signals.subscribe() # optional
-  cp.engine.start()
-  cp.engine.block()
-
 if __name__ == "__main__":
-  port = (5001 if len(sys.argv) == 1 else int(sys.argv[1]))
-  run_with_adapter(app, port=port)
+  cherry_port = (5001 if len(sys.argv) == 1 else int(sys.argv[1]))
+  cherry_dispatcher = wsgiserver.WSGIPathInfoDispatcher({'/': app})
+  cherry_server = wsgiserver.CherryPyWSGIServer(('0.0.0.0', cherry_port), cherry_dispatcher, numthreads=100)
+  cherry_server.thread_pool = 100
+
+  try:
+    cherry_server.start()
+  except KeyboardInterrupt:
+    cherry_server.stop()
