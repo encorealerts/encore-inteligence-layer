@@ -50,7 +50,7 @@ def predict(modelname):
 
     with Timer() as t:
       json_predict = jsonify(resources[modelname].predict(json_request))
-    print json_request['screen_name'], "predict:", t.secs
+    print json_request.get('screen_name', modelname), "predict:", t.secs
 
     return json_predict
   except Exception as e:
