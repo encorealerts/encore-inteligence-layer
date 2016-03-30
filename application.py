@@ -4,6 +4,7 @@ import time
 from cherrypy import wsgiserver
 
 from actor_classification import *
+from lang_classification import LangClassification
 
 from flask import Flask, jsonify, request
 
@@ -18,6 +19,7 @@ def create_app():
   app = Flask(__name__)
   
   resources['actor_classification'] = ActorClassification()
+  resources['language_classification'] = LangClassification()
 
   return app
 
