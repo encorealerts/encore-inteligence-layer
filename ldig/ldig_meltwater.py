@@ -6,6 +6,7 @@
 # (c)2011 Nakatani Shuyo / Cybozu Labs Inc.
 
 import json
+import re
 import numpy
 import ldig
 import codecs
@@ -49,5 +50,9 @@ if __name__ == '__main__':
   #              "I really loved the sight from La Casa de Los Hermanos!",
   #              "Could you tell me where is the Chateau de la Fondue? Je suis Charlie!",
   #              "Could you tell me where is La Casa de Los Hermanos?"]:
+      print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+      print text
+      text = re.sub(r"\d|#", " ", text)
+      text = re.sub(r"\s+", " ", text)
       print text
       print lang_probabilities(text, 'models/model.small')
