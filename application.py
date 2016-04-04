@@ -1,4 +1,5 @@
 from actor_classification import ActorClassification
+from instagram_spam import *
 
 from flask import Flask, jsonify, request
 
@@ -9,6 +10,9 @@ def create_app():
   app = Flask(__name__)
   
   resources['actor_classification'] = ActorClassification()
+  resources['instagram_spam'] = InstagramSpam()
+
+  print 'Inteligence Layer - App initialized...'
 
   return app
 
