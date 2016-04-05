@@ -8,11 +8,14 @@ import traceback
 resources = {}
 def create_app():
   app = Flask(__name__)
+
+  print 'Inteligence Layer - Initializing ...'
   
   resources['actor_classification'] = ActorClassification()
+  print '...'
   resources['instagram_spam'] = InstagramSpam()
 
-  print 'Inteligence Layer - App initialized...'
+  print 'Inteligence Layer - App initialized ...'
 
   return app
 
