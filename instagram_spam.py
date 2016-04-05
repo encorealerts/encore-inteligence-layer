@@ -114,6 +114,20 @@ class NumberOfWords(BaseEstimator, TransformerMixin):
         X.loc[:, "number_of_words_in_"+c] = [len(t.split(' ')) for t in X[c].values]
     return X
 
+class NumberOfURLs(BaseEstimator, TransformerMixin):
+
+  def __init__(self, cols):
+    self.cols = cols
+
+  def fit(self, X, y=None):
+    return self
+
+  def transform(self, X, y=None):
+    for c in self.cols:
+      if c in X:
+        X.loc[:, "number_of_urls_in_"+c] = [len(re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',t)) 
+                                                 for t in X[c].values]
+    return X
 
 class NumberNonAlphaNumChars(BaseEstimator, TransformerMixin):
 
