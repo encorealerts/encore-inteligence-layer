@@ -13,5 +13,5 @@ class LangClassification:
     self.model_path = model_path[-1]
 
   def predict(self, text):
-  	text = text.get('text', '')
+    text = text.get('text', '')
     return lang_probabilities(text, self.model_path)
