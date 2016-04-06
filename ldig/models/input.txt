@@ -1,0 +1,4 @@
+pt	some metadata	I'm really happy for being here
+es	some metadata	Estou muito feliz por estar aqui
+fr	some metadata	Estoy muy alegre por estar aquí
+es	some metadata	I think this is great

@@ -5,6 +5,7 @@ from cherrypy import wsgiserver
 
 from actor_classification import *
 from instagram_spam import *
+from lang_classification import LangClassification
 
 from flask import Flask, jsonify, request
 
@@ -23,6 +24,8 @@ def create_app():
   resources['actor_classification'] = ActorClassification()
   print '...'
   resources['instagram_spam'] = InstagramSpam()
+  print '...'
+  resources['language_classification'] = LangClassification()
 
   print 'Inteligence Layer - App initialized ...'
 
