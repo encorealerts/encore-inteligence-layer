@@ -1,5 +1,5 @@
 import sys
-import time
+from time import time, ctime
 
 from cherrypy import wsgiserver
 
