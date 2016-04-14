@@ -36,6 +36,6 @@ def load_model_from_s3(s3_path):
       k.get_contents_to_filename(model_path)
 
   if not model_path:
-    raise Exception("No model found on S3 under '%s/%s*'" % [bucket.name, s3_path])
+    raise Exception("No model found on S3 under '{0}/{1}*'".format(bucket.name, s3_path))
 
   return joblib.load(model_path)
