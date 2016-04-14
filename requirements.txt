@@ -8,5 +8,6 @@ boto==2.39.0
 itsdangerous==0.24
 six==1.9.0
 nltk
+gensim
 pandas
 cherrypy
