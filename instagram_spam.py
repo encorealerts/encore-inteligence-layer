@@ -1,17 +1,6 @@
-import gensim
-import glob
 import pandas as pd
 
-import matplotlib as plt
-import numpy as np
-
-import re
-
-from time import ctime
-
-from sklearn.externals import joblib
-
-from meltwater_smart_alerts.ml.pipeline import *
+from s3_utils import load_model_from_s3
 
 class InstagramSpam:
 
@@ -19,13 +8,7 @@ class InstagramSpam:
     self.load()
 
   def load(self):
-    model_path = sorted(glob.glob('../encore-inteligence-layer/models/instagram_spam_model_*.pkl'))
-    model_path += sorted(glob.glob('/mnt/encore-inteligence-layer/models/instagram_spam_model_*.pkl'))
-
-    print model_path
-
-    instagram_spam_model = model_path[-1]
-    self.model = joblib.load(instagram_spam_model)
+    self.model = load_model_from_s3("spam_classification/models/instagram_spam_classification_trained_model_")
 
   def predict(self, json):
     data = pd.DataFrame([{'body': json['text']}])
