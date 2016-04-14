@@ -26,6 +26,7 @@ def load_model_from_s3(s3_path):
 
   MODELS_PATH = "models/"
 
+  model_path = None
   for k in models:
     model_path = MODELS_PATH + str(k.key)
     model_dir_path = os.path.dirname(model_path)
