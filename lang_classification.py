@@ -7,10 +7,7 @@ class LangClassification:
     self.load()
 
   def load(self):
-    model_path = sorted(glob.glob('../encore-inteligence-layer/ldig/models/model.small'))
-    model_path += sorted(glob.glob('/mnt/encore-inteligence-layer/ldig/models/model.small'))
-
-    self.model_path = model_path[-1]
+    self.model_path = "ldig/models/model.small"
 
   def predict(self, text):
     text = text.get('text', '')

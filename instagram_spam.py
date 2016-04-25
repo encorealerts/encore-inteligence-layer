@@ -8,7 +8,7 @@ class InstagramSpam:
     self.load()
 
   def load(self):
-    self.model = load_model_from_s3("spam_classification/models/instagram_spam_classification_trained_model_")
+    self.model = load_model_from_s3("spam_classification/models/instagram_spam_model_")
 
   def predict(self, json):
     data = pd.DataFrame([{'body': json['text']}])

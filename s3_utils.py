@@ -1,4 +1,5 @@
 import os
+import re
 import gensim
 
 from sklearn.ensemble import RandomForestClassifier
@@ -26,14 +27,18 @@ def load_model_from_s3(s3_path):
 
   MODELS_PATH = "models/"
 
+  file_path = None
   model_path = None
   for k in models:
-    model_path = MODELS_PATH + str(k.key)
-    model_dir_path = os.path.dirname(model_path)
+    file_path = MODELS_PATH + str(k.key)
+    model_dir_path = os.path.dirname(file_path)
     if not os.path.exists(model_dir_path):
       os.makedirs(model_dir_path)
-    if not os.path.exists(model_path):
-      k.get_contents_to_filename(model_path)
+    if not os.path.exists(file_path):
+      print "Downloading file from S3: {0}".format(file_path)
+      k.get_contents_to_filename(file_path)
+    if re.match(r".*pkl$", str(k.key)):
+      model_path = file_path
 
   if not model_path:
     raise Exception("No model found on S3 under '{0}/{1}*'".format(bucket.name, s3_path))
