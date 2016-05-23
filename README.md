@@ -7,7 +7,7 @@ Docker
 ### Generate a ECR authentication command from the AWS credentials in the computer and run it
 #### Your credentials must be set on ~/.aws/credentials
 
-eval "$(aws ecr get-login --region us-east-1)"
+aws ecr get-login --region us-east-1 | sh -
 
 ### Build the Docker image from the Dockerfile in the current directory
 docker build -t meltwater/executive_alerts_intelligence .
