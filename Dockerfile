@@ -26,7 +26,7 @@ RUN pip install -r /app/requirements.txt
 
 # Installing smart_alerts_intelligence_utils
 # RUN git clone git@github.com:encorealerts/smart_alerts_intelligence_utils.git
-RUN git clone https://95478f431e018aff65923a13ec0f46b868557d50@github.com/encorealerts/smart_alerts_intelligence_utils.git
+RUN git clone https://9d1aed01d6a901e964d26e75e7c8d86eafab7cbe@github.com/encorealerts/smart_alerts_intelligence_utils.git
 
 # smart_alerts_intelligence_utils setup 
 RUN cd /app/smart_alerts_intelligence_utils && python setup.py install && cd /app

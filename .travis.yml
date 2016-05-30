@@ -2,11 +2,13 @@ sudo: required
 services:
   - docker
 
-# command to run tests
-script: 
-  - docker build -t meltwater/executive_alerts_intelligence .
-# - docker run --rm --name executive_alerts_intelligence_container -p 5001:5001 \
-# -   		     -e "AWS_ACCESS_KEY_ID=00000000000000000" \
-# -   		     -e "AWS_SECRET_ACCESS_KEY=00000000000000000000" \
-# -   		     -e "LUIGI_S3_BUCKET=encorealert-luigi-test" \
-# -   		     -it meltwater/executive_alerts_intelligence
+before_install: 
+  - sudo docker build -t meltwater/executive_alerts_intelligence .
+  - sudo docker images
+# - sudo docker run --rm --name executive_alerts_intelligence_container -p 5001:5001 \
+# -   		          -e "AWS_ACCESS_KEY_ID=00000000000000000" \
+# -   		          -e "AWS_SECRET_ACCESS_KEY=00000000000000000000" \
+# -   		          -e "LUIGI_S3_BUCKET=encorealert-luigi-test" \
+# -   		          -it meltwater/executive_alerts_intelligence
+
+script: nosetests
