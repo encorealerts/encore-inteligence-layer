@@ -1,7 +1,24 @@
 language: python
+sudo: required
+dist: trusty # For Ubuntu 14.04
 python:
   - "2.7"
 # command to install dependencies
-install: "pip install -r requirements.txt"
-# command to run tests
-script: nosetests
+install: 
+  - "sudo apt-get update"
+  - "sudo apt-get install build-essential"
+  - "sudo apt-get install git"
+  - "sudo apt-get install libopenblas-dev"
+  - "sudo apt-get install python-dev"
+  - "sudo apt-get install python-pip"
+  - "sudo apt-get install python-nose"
+  - "sudo apt-get install python-numpy"
+  - "sudo apt-get install python-scipy"
+  - "pip install cython"
+  - "pip install git+https://github.com/scikit-learn/scikit-learn.git@0.17.X"
+  - "pip install -r requirements.txt"
+  - "git clone https://95478f431e018aff65923a13ec0f46b868557d50@github.com/encorealerts/smart_alerts_intelligence_utils.git"
+# command to run scripts and tests
+script: 
+  - "cd smart_alerts_intelligence_utils && python setup.py install && cd .."
+  - nosetests
