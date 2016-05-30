@@ -11,4 +11,5 @@ before_install:
 # -   		          -e "LUIGI_S3_BUCKET=encorealert-luigi-test" \
 # -   		          -it meltwater/executive_alerts_intelligence
 
-script: nosetests
+script: 
+  - sudo docker run meltwater/executive_alerts_intelligence /bin/sh -c "cat /app/application.py"
