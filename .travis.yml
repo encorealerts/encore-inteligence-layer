@@ -1,27 +1,12 @@
-language: python
 sudo: required
-# dist: trusty # For Ubuntu 14.04
-python:
-  - "2.7"
-# command to install dependencies
-before_install: 
-  - "sudo apt-get update"
-  - "sudo apt-get install -y build-essential"
-  - "sudo apt-get install -y git"
-  - "sudo apt-get install -y libopenblas-dev"
-  - "sudo apt-get install -y python-dev"
-  - "sudo apt-get install -y python-pip"
-  - "sudo apt-get install -y python-nose"
-  - "sudo apt-get install -y python-numpy"
-  - "sudo apt-get install -y python-scipy"
-install:
-  - "pip install cython"
-  - "pip install git+https://github.com/scikit-learn/scikit-learn.git@0.17.X"
-  - "pip install -r requirements.txt"
-  - "git clone https://95478f431e018aff65923a13ec0f46b868557d50@github.com/encorealerts/smart_alerts_intelligence_utils.git"
-# commands to run before scripts
-before_script: 
-  - "cd smart_alerts_intelligence_utils && python setup.py install && cd .."
+services:
+  - docker
+
 # command to run tests
 script: 
-  - nosetests
+  - docker build -t meltwater/executive_alerts_intelligence .
+# - docker run --rm --name executive_alerts_intelligence_container -p 5001:5001 \
+# -   		     -e "AWS_ACCESS_KEY_ID=00000000000000000" \
+# -   		     -e "AWS_SECRET_ACCESS_KEY=00000000000000000000" \
+# -   		     -e "LUIGI_S3_BUCKET=encorealert-luigi-test" \
+# -   		     -it meltwater/executive_alerts_intelligence

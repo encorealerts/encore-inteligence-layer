@@ -12,6 +12,13 @@ aws ecr get-login --region us-east-1 | sh -
 ### Build the Docker image from the Dockerfile in the current directory
 docker build -t meltwater/executive_alerts_intelligence .
 
+### [Option] Run locally to test it
+docker run --rm --name executive_alerts_intelligence_container -p 5001:5001 \
+		   -e "AWS_ACCESS_KEY_ID=00000000000000000" \
+		   -e "AWS_SECRET_ACCESS_KEY=00000000000000000000" \
+		   -e "LUIGI_S3_BUCKET=encorealert-luigi-test" \
+		   -it meltwater/executive_alerts_intelligence
+
 ### Add a tag "latest" to the image
 docker tag meltwater/executive_alerts_intelligence:latest 421268985564.dkr.ecr.us-east-1.amazonaws.com/meltwater/executive_alerts_intelligence:latest
 
