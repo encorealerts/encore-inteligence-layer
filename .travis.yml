@@ -4,21 +4,24 @@ sudo: required
 python:
   - "2.7"
 # command to install dependencies
-install: 
+before_install: 
   - "sudo apt-get update"
   - "sudo apt-get install -y build-essential"
   - "sudo apt-get install -y git"
+  - "sudo apt-get install -y libopenblas-dev"
   - "sudo apt-get install -y python-dev"
   - "sudo apt-get install -y python-pip"
+  - "sudo apt-get install -y python-nose"
   - "sudo apt-get install -y python-numpy"
-#  - "sudo apt-get install -y python-scipy"
-  - "sudo apt-get install -y libopenblas-dev liblapack-dev"
-  - "pip install scipy"
+  - "sudo apt-get install -y python-scipy"
+install:
   - "pip install cython"
   - "pip install git+https://github.com/scikit-learn/scikit-learn.git@0.17.X"
   - "pip install -r requirements.txt"
   - "git clone https://95478f431e018aff65923a13ec0f46b868557d50@github.com/encorealerts/smart_alerts_intelligence_utils.git"
-# command to run scripts and tests
-script: 
+# commands to run before scripts
+before_script: 
   - "cd smart_alerts_intelligence_utils && python setup.py install && cd .."
+# command to run tests
+script: 
   - nosetests
