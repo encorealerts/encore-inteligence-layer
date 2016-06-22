@@ -4,10 +4,7 @@ Instructions for deploying to AWS ECS
 Docker
 ------
 
-### Generate a ECR authentication command from the AWS credentials in the computer and run it
-#### Your credentials must be set on ~/.aws/credentials
-
-aws ecr get-login --region us-east-1 | sh -
+Running locally with docker:
 
 ### Build the Docker image from the Dockerfile in the current directory
 docker build -t meltwater/executive_alerts_intelligence .
@@ -19,11 +16,10 @@ docker run --rm --name executive_alerts_intelligence_container -p 5001:5001 \
 		   -e "LUIGI_S3_BUCKET=encorealert-luigi-test" \
 		   -it meltwater/executive_alerts_intelligence
 
-### Add a tag "latest" to the image
-docker tag meltwater/executive_alerts_intelligence:latest 421268985564.dkr.ecr.us-east-1.amazonaws.com/meltwater/executive_alerts_intelligence:latest
+### TravisCI
 
-### Push the docker image to the AWS ECR
-docker push 421268985564.dkr.ecr.us-east-1.amazonaws.com/meltwater/executive_alerts_intelligence:latest
+The project now is integrated with Travis, which automatically builds and pushes an image to ECR on each push to github.
+Once the image is successfully created by Travis, the following steps must be executed to run on ECS.
 
 AWS ECS
 -------
