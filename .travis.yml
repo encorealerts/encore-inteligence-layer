@@ -8,8 +8,16 @@ before_install:
 - LOGIN_STRING=`aws ecr get-login --region us-east-1`
 # Executes docker login command
 - ${LOGIN_STRING}
-
 - export AWS_REPO=421268985564.dkr.ecr.us-east-1.amazonaws.com/meltwater/executive_alerts_intelligence
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH
+  ; fi`
+# Loads docker cache from last version
+- docker pull $AWS_REPO:$TAG > /dev/null 2>&1 || true
+install: 
+- echo "Skipping default ruby behavior"
+script: 
+- echo "NO TESTS - Skipping default ruby behavior"
+after_success:
 - export REPO=meltwater/executive_alerts_intelligence
 - docker build -t $REPO:$COMMIT .
 # Creates/overrides current branch image
