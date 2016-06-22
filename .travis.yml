@@ -1,0 +1,34 @@
+services:
+- docker
+before_install:
+# Install aws dependencies
+- pip install --user awscli
+- export PATH=$PATH:$HOME/.local/bin
+# Retrieves docker login command for aws
+- LOGIN_STRING=`aws ecr get-login --region us-east-1`
+# Executes docker login command
+- ${LOGIN_STRING}
+
+- export AWS_REPO=421268985564.dkr.ecr.us-east-1.amazonaws.com/meltwater/executive_alerts_intelligence
+- export REPO=meltwater/executive_alerts_intelligence
+- docker build -t $REPO:$COMMIT .
+# Creates/overrides current branch image
+- docker tag -f $REPO:$COMMIT $AWS_REPO:$TAG
+# Creates final image for build format: "${branch name}-${build number}"
+- docker tag $REPO:$COMMIT $AWS_REPO:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER
+# Pushes images to AWS ECR
+- docker push $AWS_REPO
+
+# Tags git
+- git config --global user.email "builds@travis-ci.com"
+- git config --global user.name "Travis CI"
+- export GIT_TAG=build-$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER
+- git tag $GIT_TAG -a -m "Generated tag from TravisCI build $TRAVIS_BUILD_NUMBER"
+- git push origin $GIT_TAG
+branches:
+  except:
+    - /^build-[0-9a-z\-]*/
+env:
+  global:
+  - secure: CxWonIVOR9A+RL2jYmQOUd0EFVuuvQZ11Uq9B+aOFQx94+wL9rVc/xKugLqYC8yWNNskwWW1q1mU28wta3hzSmUrWq5/0+jzEuOSJWMPRuSvQs0KsTe9y0GciO4Yep2tah6BHGj4A/FftN4eubpGmdF5VonhPKhOmvDvSOUsusskjuPEPHpZecrcLjp3on7OaQMzmnFce7LugA4VQngLGAt8Sex7m8Xq9EQ5U9nUYnPNGh1nTAWicTfqY2kbr1bHMiYNLcPCV0EXExTg4E741DT0xtPFEGeLP8QRyUQ7tbjIGW9KgeJClXSexoU+x+bSZT+qC0R5inyuYqpGDIvi53n62bCCxftLObPZ7cNIRvhhEG1ZuwICPbVemB4O35shdO+UkL6fZ56AJ1dX7ZyenkONbbqxM/EMfeP4asoOPQaFKy4lUKe4WH7Kj0i8b8ctn1BGZini3WlIlRSCRWcfRrvPxnWJFRSstFjS0JeyCkj9dBvyFQaTFyYarwyZRdwMvNb8KBdnWAo11++GOLrK2uuUxG7PsWQVr3YEOsUatTePu0atnR7ka0fwsinafLWc+udJRnczFuNiJ5YzG7ZiKiJAJMUK3+6tAK2OWW7glFjuiaTdBS41SGyZKAaoPaA5h7iSSjchGwblTyMB6YDLyCfO+GgXFZR1vn9O8OVMN8I=
+  - secure: ceY5hk9jwNMcDfPPPbA4XgKx5HOCR2E58i7vLVtCsFeeQArdUR7CBbfRI7HLD4g4YFYTZbP4k7sTYloPbYeMWAFw0ot5CpKvyWwRWEPu5HTC8uUyJg8jMhuc4z9rm3VjCdmp3niSPSvGYl77nsf3Friz/wJnf47EGmN0ZC5ff56ao2WRPTCn7DnhAu0iBX8F/smaFl8WLsJzV1m5KsrhqO2RlzI9FZSk0qUvKRctb+6upSddI7OJJ1ERwwupxw197We8fd7p5Tqx4/GEqm0niVotbsmX6SpqqGZPcxqCUY1v8ZkxI2WPzXMuRDaJ2qjuF46wvmxiA1450gM3y1pInrnEJFXpKU5nSmTmSQnORn7oaefuouXdMEHYw9wNOZgD/wM01WEKWGYCM+jRIIdsxjPzblJYWHyuPc/XktWingznCucuMcNnZ0tfwWHGfUuPJUhQdsWnajrZxOCKFTegjY2hvCbnah/sDMbp09M2QrjjYWdZt0UY5zDPZ30z5mltFFuGStUlXHSqIYtuT4qa8MJKUr2djm5rE6Hg9lrGyxdm/6/BODTSIB3Ho1lxmBjaDG4Irbt/G43HEXGH6EBYnfjGeAFMuGl+UUieBb7hXfnTWU+eX7dBdV9mp3vnuingIVh2cebGRyPH9LOTnJTVSTZOCc6iYtgkIYNer+yYPUk=
