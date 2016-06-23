@@ -1,5 +1,6 @@
 import os
 import re
+import boto
 import gensim
 
 from sklearn.ensemble import RandomForestClassifier
@@ -18,8 +19,11 @@ from boto.s3.connection import S3Connection
 from meltwater_smart_alerts.ml.pipeline import *
 
 def load_model_from_s3(s3_path):
-  conn = S3Connection(os.environ['AWS_ACCESS_KEY_ID'], 
-                      os.environ['AWS_SECRET_ACCESS_KEY'])
+  if(os.environ.get('AWS_ACCESS_KEY_ID','') == ''):
+    conn = boto.connect_s3()
+  else:
+    conn = S3Connection(os.environ['AWS_ACCESS_KEY_ID'], 
+                        os.environ['AWS_SECRET_ACCESS_KEY'])
 
   bucket = conn.get_bucket(os.environ['LUIGI_S3_BUCKET'])
 
